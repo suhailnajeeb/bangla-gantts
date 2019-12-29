@@ -19,4 +19,4 @@ for index, row in df.iterrows():
         tts.save(SAVEPATH + fileID + '_synth.mp3')
         print(fileID + ': Complete')
     except:
-        print('Failed to generate TTS for index: ' + str(index))
+        print('Failed to generate TTS for index: ' + str(index)) 

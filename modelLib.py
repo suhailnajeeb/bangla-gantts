@@ -1,7 +1,7 @@
 from tensorflow.keras.layers import Conv1D, Input, Dense, Dropout, MaxPooling1D, Flatten, UpSampling1D, concatenate
-from tensorflow.keras.layers import Conv2D, BatchNormalization, MaxPooling2D, GlobalMaxPooling2D, SpatialDropout2D
-from tensorflow.keras.layers.merge import add, concatenate
-from tensorflow.keras.layers.advanced_activations import ReLU, Softmax
+#from tensorflow.keras.layers import Conv2D, BatchNormalization, MaxPooling2D, GlobalMaxPooling2D, SpatialDropout2D
+#from tensorflow.keras.layers.merge import add, concatenate
+#from tensorflow.keras.layers.advanced_activations import ReLU, Softmax
 from tensorflow.keras.models import Model
 
 modelArch = {}												
@@ -18,7 +18,7 @@ def makeModel(architecture,verbose=True):
 	return model
 
 @addModel
-def speechUNET_001(nsamp):
+def speechUNET_001(nsamp = 40000):
     inputs = Input(shape = (nsamp,1))
     conv1 = Conv1D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(inputs)
     conv1 = Conv1D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv1)
@@ -66,5 +66,34 @@ def speechUNET_001(nsamp):
     conv10 = Conv1D(1, 1, activation = 'sigmoid')(conv9)
 
     model = Model(inputs = inputs, outputs = conv10)
+    return model
 
+@addModel
+def speechUNET_test(nsamp = 40000):
+    inputs = Input(shape = (40000, 1))
+    conv1 = Conv1D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(inputs)
+    conv1 = Conv1D(64, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv1)
+    pool1 = MaxPooling1D(pool_size = 2)(conv1)
+
+    conv2 = Conv1D(128, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(pool1)
+    conv2 = Conv1D(128, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv2)
+    #pool2 = MaxPooling1D(pool_size = 2)(conv2)
+
+    up9 = Conv1D(64, 2, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(UpSampling1D(size = 2)(conv2))
+    merge9 = concatenate([conv1,up9], axis = 2)
+    conv9 = Conv1D(128, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(merge9)
+    conv9 = Conv1D(128, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
+
+    conv9 = Conv1D(2, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
+    conv10 = Conv1D(1, 1, activation = 'sigmoid')(conv9)
+    model = Model(inputs = inputs, outputs = conv10)
+    return model
+
+@addModel
+def dummynet():
+    inputs = Input((40000, 1))
+    cc = Conv1D(1, 3, activation='relu', padding='same') (inputs)
+    outputs = Conv1D(1, 1, activation='sigmoid') (cc)
+
+    model = Model(inputs=[inputs], outputs=[outputs])
     return model
